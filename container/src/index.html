@@ -20,18 +20,20 @@
 			import * as THREE from '../three/build/three.module.js';
 			import { GUI } from '../three/examples/jsm/libs/dat.gui.module.js';
 			import { OrbitControls } from 'https://unpkg.com/three@0.127.0/examples/jsm/controls/OrbitControls.js';
-
+			import Stats from '../three/examples/jsm/libs/stats.module.js';
+			
 			var camera, scene, renderer;
 			var plane;
 			var pointer, raycaster, isShiftDown = false;
-
-			var cubePreviewMesh, cubePreviewMaterial;
+			
+			var intersect
+			var main_material;
+			var cubePreviewMesh, cubePreviewMaterial, usePreviewMaterial;
 			var cubeGeo, cubeMaterial;
-
 			const objects = [];
 
 			init();
-			render();
+			animate();
 
 			function init() {
 
@@ -43,11 +45,25 @@
 				scene.background = new THREE.Color( 0xf0f0f0 );
 
 				// roll-over helpers
-
 				const cubePreviewGeo = new THREE.BoxGeometry( 50, 50, 100 );
-				cubePreviewMaterial = new THREE.MeshBasicMaterial( { color: 0xff0000, opacity: 0.5, transparent: true } );
-				cubePreviewMesh = new THREE.Mesh( cubePreviewGeo, cubePreviewMaterial );
-				scene.add( cubePreviewMesh );
+				cubePreviewMaterial = new THREE.MeshBasicMaterial( { color: 0xff0000, opacity: 0.3, transparent: true } );
+				usePreviewMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000, opacity: 0.8, transparent: true });
+
+				main_material = cubePreviewMaterial;
+
+
+				for ( let i = 0; i < 10; i++ ) {
+					for (let j = 0; j < 8; j++ )
+					{
+					cubePreviewMesh = new THREE.Mesh( cubePreviewGeo, cubePreviewMaterial );
+					cubePreviewMesh.position.x = (52 * i) - 234;
+					cubePreviewMesh.position.z = (105 * j) - 367;
+					cubePreviewMesh.position.y = 25;
+					scene.add(cubePreviewMesh);
+					objects.push(cubePreviewMesh);
+					}
+				};
+
 
 				// cubes
 
@@ -70,7 +86,7 @@
 				plane = new THREE.Mesh( geometry, new THREE.MeshBasicMaterial( { visible: false } ) );
 				scene.add( plane );
 
-				objects.push( plane );
+				//objects.push( plane );
 
 				
 				// lights
@@ -91,6 +107,7 @@
 				document.addEventListener( 'pointerdown', onPointerDown );
 				document.addEventListener( 'keydown', onDocumentKeyDown );
 				document.addEventListener( 'keyup', onDocumentKeyUp );
+
 				//scene control
 				const controls = new OrbitControls( camera, renderer.domElement );
 				//
@@ -111,23 +128,22 @@
 			function onPointerMove( event ) {
 
 				pointer.set( ( event.clientX / window.innerWidth ) * 2 - 1, - ( event.clientY / window.innerHeight ) * 2 + 1 );
-
 				raycaster.setFromCamera( pointer, camera );
-
 				const intersects = raycaster.intersectObjects( objects );
 
 				if ( intersects.length > 0 ) {
-
-					const intersect = intersects[ 0 ];
-
-					cubePreviewMesh.position.copy( intersect.point ).add( intersect.face.normal );
-					cubePreviewMesh.position.divideScalar( 50 ).floor().multiplyScalar( 50 ).addScalar( 25 );
-
+					if (intersect != intersects[ 0 ].object) 
+					{
+						intersect = intersects[ 0 ].object;
+						intersect.material = usePreviewMaterial;
+					}
+					else
+					{
+						intersect.material = main_material;
+						intersect = null;
+					}
 				}
-
-				render();
-
-			}
+			}			
 
 			function onPointerDown( event ) {
 
@@ -138,8 +154,6 @@
 				const intersects = raycaster.intersectObjects( objects );
 
 				if ( intersects.length > 0 ) {
-
-					const intersect = intersects[ 0 ];
 
 					// delete cube
 
@@ -156,17 +170,19 @@
 						// create cube
 
 					} else {
+						var container = new THREE.Mesh( cubeGeo, cubeMaterial );
+						container.position.x = intersect.position.x;
+						container.position.y = intersect.position.y;
+						container.position.z = intersect.position.z;
 
-						const voxel = new THREE.Mesh( cubeGeo, cubeMaterial );
-						voxel.position.copy( intersect.point ).add( intersect.face.normal );
-						voxel.position.divideScalar( 50 ).floor().multiplyScalar( 50 ).addScalar( 25 );
-						scene.add( voxel );
-
-						objects.push( voxel );
-
+						// intersect.position.x += 50;
+						 intersect.position.y += 50;
+						//intersect.position.z += 50;
+						// var pos = intersect.position.x;
+						// container.position.x = pos;
+						scene.add( container );
 					}
 
-					render();
 
 				}
 
@@ -191,13 +207,16 @@
 				}
 
 			}
+			function animate() {
 
-			function render() {
+			requestAnimationFrame( animate );
 
-				renderer.render( scene, camera );
-
+			render();
 			}
-
+			function render() {
+				
+				renderer.render( scene, camera );
+			}
 		</script>
 
 	</body>
