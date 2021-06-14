@@ -31,7 +31,7 @@
 			var cubePreviewMesh, cubePreviewMaterial, usePreviewMaterial;
 			var cubeGeo, cubeMaterial;
 			const objects = [];
-
+			const containers = [];
 			init();
 			animate();
 
@@ -134,14 +134,18 @@
 				if ( intersects.length > 0 ) {
 					if (intersect != intersects[ 0 ].object) 
 					{
+						if(intersect) intersect.material = main_material;
 						intersect = intersects[ 0 ].object;
 						intersect.material = usePreviewMaterial;
 					}
-					else
-					{
+				}
+				else
+				{
+					if(intersect != null){
 						intersect.material = main_material;
 						intersect = null;
 					}
+						
 				}
 			}			
 
@@ -162,7 +166,6 @@
 						if ( intersect.object !== plane ) {
 
 							scene.remove( intersect.object );
-
 							objects.splice( objects.indexOf( intersect.object ), 1 );
 
 						}
@@ -174,12 +177,9 @@
 						container.position.x = intersect.position.x;
 						container.position.y = intersect.position.y;
 						container.position.z = intersect.position.z;
+						intersect.position.y += 50;
+						containers.push(container);
 
-						// intersect.position.x += 50;
-						 intersect.position.y += 50;
-						//intersect.position.z += 50;
-						// var pos = intersect.position.x;
-						// container.position.x = pos;
 						scene.add( container );
 					}
 
@@ -214,6 +214,7 @@
 			render();
 			}
 			function render() {
+
 				
 				renderer.render( scene, camera );
 			}
