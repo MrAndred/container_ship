@@ -15,6 +15,9 @@
 		</style>
 	</head>
 	<body>
+		<div id="info">
+			<a href=""> Зажмите alt для вывода позиции в консоль</a>
+		</div>
 		<script type="module">
 
 			import * as THREE from '../three/build/three.module.js';
@@ -23,7 +26,7 @@
 			
 			var camera, scene, renderer;
 			var plane;
-			var pointer, raycaster, isShiftDown = false;
+			var pointer, raycaster, isShiftDown = false, isAltDown = false;
 			
 			var intersect
 			var main_material;
@@ -183,9 +186,10 @@
 				pointer.set( ( event.clientX / window.innerWidth ) * 2 - 1, - ( event.clientY / window.innerHeight ) * 2 + 1 );
 
 				raycaster.setFromCamera( pointer, camera );
-				const intersects = raycaster.intersectObjects( objects );
+				let intersects = raycaster.intersectObjects( objects  );
 				if ( intersects.length > 0 ) {
 				   // create cube
+				 if	(!isAltDown)  {
 				   var container = new THREE.Mesh( cubeGeo, cubeMaterial );
 						container.position.x = intersect.position.x;
 						container.position.y = intersect.position.y;
@@ -194,16 +198,22 @@
 						containers.push(container);
 
 						scene.add( container );
+				 }
 				}
-
+				intersects = raycaster.intersectObjects( containers  );
+				if (intersects.length > 0){
+					if (isAltDown == true)
+					{
+						console.log(intersects[ 0 ].object.position);
+					}
+				}
 			}
 
 			function onDocumentKeyDown( event ) {
-
 				switch ( event.keyCode ) {
 
 					case 16: isShiftDown = true; break;
-
+					case 18: isAltDown = true; break;
 				}
 
 			}
@@ -213,6 +223,7 @@
 				switch ( event.keyCode ) {
 
 					case 16: isShiftDown = false; break;
+					case 18: isAltDown = false; break;
 
 				}
 
