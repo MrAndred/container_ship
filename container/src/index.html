@@ -4,6 +4,7 @@
 		<title>three.js webgl - interactive - voxel painter</title>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<link rel="stylesheet" href="css/style.css">
 		<style>
 			body {
 				background-color: #f0f0f0;
@@ -11,12 +12,12 @@
 			}
 			a {
 				color: #08f;
-			}
+			} 
 		</style>
 	</head>
 	<body>
 		<div id="info">
-			<a href=""> Зажмите alt для вывода позиции в консоль</a>
+			Зажмите alt для вывода позиции в консоль
 		</div>
 		<script type="module">
 
@@ -32,6 +33,8 @@
 			var main_material;
 			var cubePreviewMesh, cubePreviewMaterial, usePreviewMaterial;
 			var cubeGeo, cubeMaterial;
+
+			let x = 234, y = 25, z = 367;
 			const objects = [];
 			const containers = [];
 			init();
@@ -50,7 +53,6 @@
 				const cubePreviewGeo = new THREE.BoxGeometry( 50, 50, 100 );
 				cubePreviewMaterial = new THREE.MeshBasicMaterial( { color: 0xff0000, opacity: 0.3, transparent: true } );
 				usePreviewMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000, opacity: 0.8, transparent: true });
-
 				main_material = cubePreviewMaterial;
 
 
@@ -133,9 +135,47 @@
 
 						}
 
+					}, 
+
+					contAddition = gui.addFolder('AddContainerByCoordinates'),
+					addContainer = {
+						get 'Y'()
+						{
+							return y;
+						},
+
+						set 'Y'( v )
+						{
+							y = v
+						},
+						
+						get 'X'()
+						{
+							return x;
+						},
+						set 'X'(v)
+						{
+							x = v
+						},
+						
+						get 'Z'()
+						{
+							return z;
+						},
+						set 'Z'(v)
+						{
+							z = v
+						},
+						'Add' : Add
 					};
+				
 				folderGlobal.add( propsGlobal, 'Enabled' );
 				folderGlobal.add( propsGlobal, 'Plane', - 500, 500 );
+
+				contAddition.add(addContainer, 'Y', 25, 200, 25);
+				contAddition.add(addContainer, 'X', -234, 234, x + 50);
+				contAddition.add(addContainer, 'Z', -367, 367);
+				contAddition.add(addContainer, 'Add');
 
 				document.addEventListener( 'pointermove', onPointerMove );
 				document.addEventListener( 'pointerdown', onPointerDown );
@@ -239,6 +279,16 @@
 
 				
 				renderer.render( scene, camera );
+			}
+
+			function Add() {
+				var container = new THREE.Mesh( cubeGeo, cubeMaterial );
+						container.position.x = x;
+						container.position.y = y;
+						container.position.z = z;
+						containers.push(container);
+						scene.add( container );
+
 			}
 		</script>
 
