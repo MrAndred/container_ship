@@ -34,7 +34,8 @@
 			var cubePreviewMesh, cubePreviewMaterial, usePreviewMaterial;
 			var cubeGeo, cubeMaterial;
 
-			let x = 234, y = 25, z = 367;
+
+			let x = 192, y = 24.9, z = 400;
 			const objects = [];
 			const containers = [];
 			init();
@@ -57,15 +58,19 @@
 
 
 				for ( let i = 0; i < 10; i++ ) {
+					let bufferPositionZ = z;
 					for (let j = 0; j < 8; j++ )
 					{
 					cubePreviewMesh = new THREE.Mesh( cubePreviewGeo, cubePreviewMaterial );
-					cubePreviewMesh.position.x = (52 * i) - 234;
-					cubePreviewMesh.position.z = (105 * j) - 367;
-					cubePreviewMesh.position.y = 25;
+					cubePreviewMesh.position.y = y;
+					cubePreviewMesh.position.x = x;
+					cubePreviewMesh.position.z = bufferPositionZ;
+					bufferPositionZ -= 105;
+					
 					scene.add(cubePreviewMesh);
 					objects.push(cubePreviewMesh);
 					}
+					x -= 55;
 				};
 
 
@@ -103,14 +108,15 @@
 				const controls = new OrbitControls( camera, renderer.domElement );
 
 				//Clipping plane
-				const globalPlane = new THREE.Plane( new THREE.Vector3( - 1, 0, 0 ), 0 );
-				const globalPlanes = [ globalPlane ],
-				Empty = Object.freeze( [] );
+				const globalRightPlane = new THREE.Plane( new THREE.Vector3( - 1, 0, 0 ), 220 );
+				const globalTopPlane = new THREE.Plane( new THREE.Vector3(  0, -1, 0 ), 312 );
+				const globalPlanes = [ globalRightPlane, globalTopPlane ],
+					Empty = Object.freeze( [] );
 				renderer.clippingPlanes = Empty; // GUI sets it to globalPlanes
 				renderer.localClippingEnabled = true;
 
 				//GUI
-				const gui = new GUI(),folderGlobal = gui.addFolder( 'Global Clipping' ),
+				const gui = new GUI(),folderGlobal = gui.addFolder( 'Local Clipping' ),
 					propsGlobal = {
 
 						get 'Enabled'() {
@@ -124,59 +130,32 @@
 
 						},
 
-						get 'Plane'() {
+						get 'rightPlane'() {
 
-							return globalPlane.constant;
+							return globalRightPlane.constant;
 
 						},
-						set 'Plane'( v ) {
+						set 'rightPlane'( v ) {
 
-							globalPlane.constant = v;
+							globalRightPlane.constant = v;
+
+						},
+						get 'topPlane'() {
+
+							return globalTopPlane.constant;
+
+						},
+						set 'topPlane'( v ) {
+
+							globalTopPlane.constant = v;
 
 						}
 
-					}, 
-
-					contAddition = gui.addFolder('AddContainerByCoordinates'),
-					addContainer = {
-						get 'Y'()
-						{
-							return y;
-						},
-
-						set 'Y'( v )
-						{
-							y = v
-						},
-						
-						get 'X'()
-						{
-							return x;
-						},
-						set 'X'(v)
-						{
-							x = v
-						},
-						
-						get 'Z'()
-						{
-							return z;
-						},
-						set 'Z'(v)
-						{
-							z = v
-						},
-						'Add' : Add
 					};
-				
 				folderGlobal.add( propsGlobal, 'Enabled' );
-				folderGlobal.add( propsGlobal, 'Plane', - 500, 500 );
-
-				contAddition.add(addContainer, 'Y', 25, 200, 25);
-				contAddition.add(addContainer, 'X', -234, 234, x + 50);
-				contAddition.add(addContainer, 'Z', -367, 367);
-				contAddition.add(addContainer, 'Add');
-
+				folderGlobal.add( propsGlobal, 'rightPlane', -250, 220, 55 );
+				folderGlobal.add( propsGlobal, 'topPlane', 52, 300, 52 );
+				
 				document.addEventListener( 'pointermove', onPointerMove );
 				document.addEventListener( 'pointerdown', onPointerDown );
 				document.addEventListener( 'keydown', onDocumentKeyDown );
@@ -228,17 +207,24 @@
 				raycaster.setFromCamera( pointer, camera );
 				let intersects = raycaster.intersectObjects( objects  );
 				if ( intersects.length > 0 ) {
+
 				   // create cube
-				 if	(!isAltDown)  {
+				 if	(!isAltDown && intersect.position.y <= 312)  {
 				   var container = new THREE.Mesh( cubeGeo, cubeMaterial );
 						container.position.x = intersect.position.x;
 						container.position.y = intersect.position.y;
 						container.position.z = intersect.position.z;
-						intersect.position.y += 50;
+						intersect.position.y += 52;
 						containers.push(container);
 
 						scene.add( container );
 				 }
+				 else
+				 {
+					scene.remove( intersect );
+					objects.splice( objects.indexOf( intersect ), 1 );	
+				 }
+				 
 				}
 				intersects = raycaster.intersectObjects( containers  );
 				if (intersects.length > 0){
@@ -279,16 +265,6 @@
 
 				
 				renderer.render( scene, camera );
-			}
-
-			function Add() {
-				var container = new THREE.Mesh( cubeGeo, cubeMaterial );
-						container.position.x = x;
-						container.position.y = y;
-						container.position.z = z;
-						containers.push(container);
-						scene.add( container );
-
 			}
 		</script>
 
